@@ -27,10 +27,15 @@ def get_label_encoders():
     encoders = {
         'Sex': LabelEncoder().fit(['Male', 'Female']),
         'Diet': LabelEncoder().fit(['Healthy', 'Average', 'Unhealthy']),
-        'Country': LabelEncoder().fit(['Argentina', 'Canada', 'France', 'Thailand', 'Germany', 
-                                     'Japan', 'Brazil', 'South Africa', 'United States']),
-        'Continent': LabelEncoder().fit(['South America', 'North America', 'Europe', 
-                                       'Asia', 'Africa']),
+        'Country': LabelEncoder().fit([
+            'Argentina', 'Canada', 'France', 'Thailand', 'Germany', 'Japan', 'Brazil', 
+            'South Africa', 'United States', 'India', 'Spain', 'Vietnam', 'China', 
+            'Nigeria', 'New Zealand', 'Australia', 'United Kingdom', 'South Korea', 
+            'Italy', 'Colombia'
+        ]),
+        'Continent': LabelEncoder().fit([
+            'South America', 'North America', 'Europe', 'Asia', 'Africa', 'Australia'
+        ]),
         'Hemisphere': LabelEncoder().fit(['Southern Hemisphere', 'Northern Hemisphere'])
     }
     return encoders
@@ -46,8 +51,7 @@ def preprocess_input(input_data):
     input_data['Continent'] = encoders['Continent'].transform([input_data['Continent']])[0]
     input_data['Hemisphere'] = encoders['Hemisphere'].transform([input_data['Hemisphere']])[0]
     
-    # Create DataFrame with all expected columns including Patient ID
-    # But we'll set Patient ID to 0 (numeric) since the model expects it but doesn't use it
+    # Create DataFrame with all expected columns
     features = [
         'Patient ID', 'Age', 'Sex', 'Cholesterol', 'Heart Rate', 'Diabetes', 
         'Family History', 'Smoking', 'Obesity', 'Alcohol Consumption',
@@ -55,7 +59,7 @@ def preprocess_input(input_data):
         'Medication Use', 'Stress Level', 'Sedentary Hours Per Day', 
         'Income', 'BMI', 'Triglycerides', 'Physical Activity Days Per Week',
         'Sleep Hours Per Day', 'Country', 'Continent', 'Hemisphere',
-        'Systolic_BP', 'Diastolic_BP'
+        'Systolic_BP', 'Diastolic_BP'  # These are the expected features
     ]
     
     # Add Patient ID as numeric 0 (won't affect prediction)
@@ -78,14 +82,16 @@ def main():
         col1, col2 = st.columns(2)
         
         with col1:
-            age = st.number_input("Age", min_value=18, max_value=90, value=50)
+            age = st.number_input("Age", min_value=18, max_value=100, value=50)
             sex = st.selectbox("Sex", ["Male", "Female"])
             country = st.selectbox("Country", [
-                "Argentina", "Canada", "France", "Thailand", "Germany", 
-                "Japan", "Brazil", "South Africa", "United States"
+                "Argentina", "Canada", "France", "Thailand", "Germany", "Japan", 
+                "Brazil", "South Africa", "United States", "India", "Spain", 
+                "Vietnam", "China", "Nigeria", "New Zealand", "Australia", 
+                "United Kingdom", "South Korea", "Italy", "Colombia"
             ])
             continent = st.selectbox("Continent", [
-                "South America", "North America", "Europe", "Asia", "Africa"
+                "South America", "North America", "Europe", "Asia", "Africa", "Australia"
             ])
             hemisphere = st.selectbox("Hemisphere", [
                 "Southern Hemisphere", "Northern Hemisphere"
@@ -95,10 +101,10 @@ def main():
         with col2:
             systolic_bp = st.number_input("Systolic Blood Pressure", min_value=90, max_value=200, value=120)
             diastolic_bp = st.number_input("Diastolic Blood Pressure", min_value=60, max_value=120, value=80)
-            cholesterol = st.number_input("Cholesterol (mg/dL)", min_value=120, max_value=400, value=200)
+            cholesterol = st.number_input("Cholesterol (mg/dL)", min_value=100, max_value=400, value=200)
             triglycerides = st.number_input("Triglycerides (mg/dL)", min_value=30, max_value=800, value=150)
-            bmi = st.number_input("BMI", min_value=18.0, max_value=40.0, value=25.0, step=0.1)
-            heart_rate = st.number_input("Resting Heart Rate (bpm)", min_value=40, max_value=110, value=72)
+            bmi = st.number_input("BMI", min_value=15.0, max_value=50.0, value=25.0, step=0.1)
+            heart_rate = st.number_input("Resting Heart Rate (bpm)", min_value=40, max_value=120, value=72)
         
         st.header("Medical History")
         col1, col2, col3 = st.columns(3)
@@ -122,15 +128,13 @@ def main():
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            exercise_hours = st.number_input("Exercise Hours Per Week", min_value=0.0, max_value=20.0, value=5.0, step=0.5)
+            exercise_hours = st.number_input("Exercise Hours Per Week", min_value=0.0, max_value=40.0, value=5.0, step=0.5)
+            sedentary_hours = st.number_input("Sedentary Hours Per Day", min_value=0.0, max_value=16.0, value=6.0, step=0.5)
             
         with col2:
-            sedentary_hours = st.number_input("Sedentary Hours Per Day", min_value=0.0, max_value=12.0, value=6.0, step=0.5)
+            sleep_hours = st.number_input("Sleep Hours Per Day", min_value=4, max_value=12, value=7)
+            income = st.number_input("Annual Income (USD)", min_value=10000, max_value=300000, value=100000, step=1000)
             
-        with col3:
-            sleep_hours = st.number_input("Sleep Hours Per Day", min_value=4, max_value=10, value=7)
-            income = st.number_input("Annual Income (USD)", min_value=20000, max_value=300000, value=100000, step=1000)
-        
         submitted = st.form_submit_button("Predict Heart Attack Risk")
     
     if submitted and model is not None:
@@ -159,14 +163,26 @@ def main():
             'Country': country,
             'Continent': continent,
             'Hemisphere': hemisphere,
-            'Systolic_BP': systolic_bp,
-            'Diastolic_BP': diastolic_bp
+            'Systolic_BP': systolic_bp,  # Using the separate BP measurements
+            'Diastolic_BP': diastolic_bp  # Using the separate BP measurements
         }
         
         # Preprocess and predict
         processed_data = preprocess_input(input_data)
         
         try:
+            # Ensure the columns are in the exact same order as during training
+            expected_columns = [
+                'Patient ID', 'Age', 'Sex', 'Cholesterol', 'Heart Rate', 'Diabetes', 
+                'Family History', 'Smoking', 'Obesity', 'Alcohol Consumption',
+                'Exercise Hours Per Week', 'Diet', 'Previous Heart Problems', 
+                'Medication Use', 'Stress Level', 'Sedentary Hours Per Day', 
+                'Income', 'BMI', 'Triglycerides', 'Physical Activity Days Per Week',
+                'Sleep Hours Per Day', 'Country', 'Continent', 'Hemisphere',
+                'Systolic_BP', 'Diastolic_BP'
+            ]
+            processed_data = processed_data[expected_columns]
+            
             prediction = model.predict(processed_data)
             prediction_proba = model.predict_proba(processed_data)
             
@@ -176,31 +192,37 @@ def main():
             if prediction[0] == 1:
                 st.error(f"High Risk of Heart Attack (Probability: {prediction_proba[0][1]:.2%})")
                 st.write("""
-                **Recommendations:**
+                *Recommendations:*
                 - Consult with a cardiologist immediately
                 - Adopt a heart-healthy diet
                 - Increase physical activity
                 - Reduce stress levels
                 - Monitor blood pressure and cholesterol regularly
+                - Quit smoking if applicable
+                - Limit alcohol consumption
                 """)
             else:
                 st.success(f"Low Risk of Heart Attack (Probability: {prediction_proba[0][1]:.2%})")
                 st.write("""
-                **Recommendations to Maintain Heart Health:**
+                *Recommendations to Maintain Heart Health:*
                 - Continue healthy lifestyle habits
                 - Regular check-ups with your doctor
                 - Maintain balanced diet and exercise routine
                 - Manage stress effectively
+                - Monitor key health indicators regularly
+                - Maintain healthy sleep patterns
                 """)
             
         except Exception as e:
             st.error(f"Prediction failed: {str(e)}")
             st.write("""
-            **Final Troubleshooting Steps:**
-            1. Check if the model was saved with the correct feature set
-            2. Verify that all preprocessing steps match the training phase
-            3. Consider retraining the model without Patient ID as a feature
+            *Troubleshooting Steps:*
+            1. Verify all input values are within expected ranges
+            2. Check that all required fields are filled
+            3. Ensure the model was trained with matching features
             """)
+            # Debugging information
+            st.write("Features being sent to model:", processed_data.columns.tolist())
 
 if __name__ == "__main__":
     main()
