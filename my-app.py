@@ -2,19 +2,24 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+import gdown
+import os
 from sklearn.preprocessing import LabelEncoder
 
-# Load the trained model
-@st.cache_resource
-def load_model():
-    try:
-        model = joblib.load('D:/minip/heart_attack_risk_model.pkl')
-        return model
-    except Exception as e:
-        st.error(f"Error loading model: {e}")
-        return None
+# Google Drive file ID of the model
+GDRIVE_FILE_ID = "13551x43fiENQqSjpC7oXDRtQsAF-BNJg"
+MODEL_PATH = "heart_attack_risk_model.pkl"
 
-model = load_model()
+# Function to download the model from Google Drive
+@st.cache_resource
+def download_model():
+    if not os.path.exists(MODEL_PATH):
+        url = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"
+        gdown.download(url, MODEL_PATH, quiet=False)
+    return joblib.load(MODEL_PATH)
+
+# Load the trained model
+model = download_model()
 
 # Create label encoders for categorical features
 @st.cache_resource
