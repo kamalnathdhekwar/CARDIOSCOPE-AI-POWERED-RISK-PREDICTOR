@@ -1,10 +1,10 @@
-import streamlit as st
-import pandas as pd
-import numpy as np
-import joblib
-import gdown
-import os
-from sklearn.preprocessing import LabelEncoder
+import streamlit as st  # Creates the web application interface
+import pandas as pd   # Data manipulation and structuring
+import numpy as np  # Handles all numerical data transformations
+import joblib  # Saves and loads models 
+import gdown  # Google Drive file downloader
+import os  # Checks if model file exists locally (os.path.exists)
+from sklearn.preprocessing import LabelEncoder  # Converts text categories (like "Male"/"Female") to numerical values
 
 # Google Drive file ID of the model
 GDRIVE_FILE_ID = "13551x43fiENQqSjpC7oXDRtQsAF-BNJg"
@@ -22,6 +22,8 @@ def download_model():
 model = download_model()
 
 # Create label encoders for categorical features
+# Each encoder converts text categories to numerical values for the model
+
 @st.cache_resource
 def get_label_encoders():
     encoders = {
@@ -42,6 +44,7 @@ def get_label_encoders():
 
 encoders = get_label_encoders()
 
+
 # Function to preprocess input data
 def preprocess_input(input_data):
     # Convert categorical features using label encoders
@@ -51,15 +54,20 @@ def preprocess_input(input_data):
     input_data['Continent'] = encoders['Continent'].transform([input_data['Continent']])[0]
     input_data['Hemisphere'] = encoders['Hemisphere'].transform([input_data['Hemisphere']])[0]
     
+#  Sex: "Male" → 0, "Female" → 1
+
+# Diet: "Healthy" → 0, "Average" → 1, "Unhealthy" → 2
+
+
     # Create DataFrame with all expected columns
     features = [
-        'Patient ID', 'Age', 'Sex', 'Cholesterol', 'Heart Rate', 'Diabetes', 
+        'Patient ID','Age', 'Sex', 'Cholesterol', 'Heart Rate', 'Diabetes', 
         'Family History', 'Smoking', 'Obesity', 'Alcohol Consumption',
         'Exercise Hours Per Week', 'Diet', 'Previous Heart Problems', 
         'Medication Use', 'Stress Level', 'Sedentary Hours Per Day', 
         'Income', 'BMI', 'Triglycerides', 'Physical Activity Days Per Week',
         'Sleep Hours Per Day', 'Country', 'Continent', 'Hemisphere',
-        'Systolic_BP', 'Diastolic_BP'  # These are the expected features
+        'Systolic_BP', 'Diastolic_BP'  
     ]
     
     # Add Patient ID as numeric 0 (won't affect prediction)
@@ -173,7 +181,7 @@ def main():
         try:
             # Ensure the columns are in the exact same order as during training
             expected_columns = [
-                'Patient ID', 'Age', 'Sex', 'Cholesterol', 'Heart Rate', 'Diabetes', 
+                 'Patient ID' ,'Age', 'Sex', 'Cholesterol', 'Heart Rate', 'Diabetes', 
                 'Family History', 'Smoking', 'Obesity', 'Alcohol Consumption',
                 'Exercise Hours Per Week', 'Diet', 'Previous Heart Problems', 
                 'Medication Use', 'Stress Level', 'Sedentary Hours Per Day', 
@@ -203,6 +211,9 @@ def main():
                 """)
             else:
                 st.success(f"Low Risk of Heart Attack (Probability: {prediction_proba[0][1]:.2%})")
+                
+               # .2% ==== 0.752389 → 75.24% (rounded to 2 decimal places)
+               
                 st.write("""
                 *Recommendations to Maintain Heart Health:*
                 - Continue healthy lifestyle habits
