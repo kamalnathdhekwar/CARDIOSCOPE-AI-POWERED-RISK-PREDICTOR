@@ -228,7 +228,7 @@ def main():
             st.error(f"Prediction failed: {str(e)}")
             st.write("""
             *Troubleshooting Steps:*
-            1. Verify all input values are within expected ranges
+            1. Verify all the input values are within expected ranges
             2. Check that all required fields are filled
             3. Ensure the model was trained with matching features
             """)
