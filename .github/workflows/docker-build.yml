@@ -28,4 +28,4 @@ jobs:
       with:
         context: .
         push: true
-        tags: kamalnathdhekwar/cvd-predi-app:latest
+        tags: kamalnathdhekwar/cvd-predi-app
